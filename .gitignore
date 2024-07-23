@@ -1,0 +1,7 @@
+.streamlit/secrets.toml
+venv/
+dataExcel.xlsx
+excel_to_mongo.py
+myreadme.md
+__pycache__/
+
