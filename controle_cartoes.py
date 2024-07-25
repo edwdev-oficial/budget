@@ -10,6 +10,8 @@ def show_controle_cartoes(df):
     st.title('Controle de Gastos com Cartões de Crédito')
     st.divider()
 
+    st.dataframe(df)
+
     df.drop(columns=['_id', 'Programação', 'Valor Programado'], inplace=True)
     df.rename(columns={'Fonte': 'Cartão', 'Data de Lançamento': 'Data'}, inplace=True)
     df['Valor'] = df['Valor'] * -1
@@ -21,32 +23,34 @@ def show_controle_cartoes(df):
     df_filtered = df.copy()
     df_filtered['Data'] = df['Data'].apply(utils.format_date)
     df_filtered['Vencimento'] = df['Vencimento'].apply(utils.format_date)
-    # df_filtered['Valor'] = df_filtered['Valor'].apply(utils.format_currency)
-    st.write('Lançamentos')
+    total = df_filtered['Valor'].sum()
+    st.write(f'Lançamentos R${utils.format_currency(total)}')
     st.dataframe(df_filtered)
 
-    df_filtered_group = df.groupby(by=['Cartão', 'Data'])['Valor'].sum().reset_index()
-    df_filtered_group.sort_values('Data', inplace=True)
-    df_filtered_group.reset_index(drop=True, inplace=True)
-    df_filtered_group['Data'] = df_filtered_group['Data'].apply(utils.format_date)
-    # df_filtered_group['Valor'] = df_filtered_group['Valor'].apply(utils.format_currency)
+    df_filtered.to_excel('df_filtered.xlsx', index=False)
 
-    st.write('Lançamentos agrupados por cartão e data')
-    st.dataframe(df_filtered_group)
-
-    df_filtered_group = df.groupby(by=['Data']).sum('Valor').reset_index()
-    df_filtered_group.sort_values('Data', inplace=True)
-    df_filtered_group.reset_index(drop=True, inplace=True)
-    df_filtered_group['Data'] = df_filtered_group['Data'].apply(utils.format_date)
+    # df_filtered_group = df.groupby(by=['Cartão', 'Data'])['Valor'].sum().reset_index()
+    # df_filtered_group.sort_values('Data', inplace=True)
+    # df_filtered_group.reset_index(drop=True, inplace=True)
+    # df_filtered_group['Data'] = df_filtered_group['Data'].apply(utils.format_date)
     # # df_filtered_group['Valor'] = df_filtered_group['Valor'].apply(utils.format_currency)
 
-    st.write('Lançamentos agrupados por data')
-    st.dataframe(df_filtered_group)
+    # st.write('Lançamentos agrupados por cartão e data')
+    # st.dataframe(df_filtered_group)
 
-    fig = px.line(
-        df_filtered_group,
-        x="Data",
-        y="Valor",
-    )
+    # df_filtered_group = df.groupby(by=['Data']).sum('Valor').reset_index()
+    # df_filtered_group.sort_values('Data', inplace=True)
+    # df_filtered_group.reset_index(drop=True, inplace=True)
+    # df_filtered_group['Data'] = df_filtered_group['Data'].apply(utils.format_date)
+    # # # df_filtered_group['Valor'] = df_filtered_group['Valor'].apply(utils.format_currency)
 
-    st.plotly_chart(fig)
+    # st.write('Lançamentos agrupados por data')
+    # st.dataframe(df_filtered_group)
+
+    # fig = px.line(
+    #     df_filtered_group,
+    #     x="Data",
+    #     y="Valor",
+    # )
+
+    # st.plotly_chart(fig)

@@ -89,6 +89,7 @@ def show_budget(df):
     st.title('Budget')
     st.divider()
 
+
     df = df.sort_values(by=['Programação', 'Valor Programado'], ascending=[True, False]).reset_index(drop=True)
     df['Saldo'] = df['Valor Programado'].cumsum()
 
@@ -148,8 +149,6 @@ def show_budget(df):
 
     dias = (pd.Timestamp.now() - pd.to_datetime(select_data, format='%d/%m/%Y')).days - 1
     media_dia_unbudget = unbudget / dias
-    # dias = 
-
 
     st.write(f'Unbudget após {select_data} R$ {utils.format_currency(unbudget)} :worried:')
     global meu_emoj
@@ -161,9 +160,11 @@ def show_budget(df):
     st.dataframe(df_unbudget)
 
     st.divider()
-    st.subheader('Database')
     df_database = df.drop(columns=['_id'])
+    st.subheader('Database')
     st.dataframe(df_database)
+
+    # df_database.to_excel('database.xlsx', )
 
     fontes = df['Fonte'].drop_duplicates().sort_values()
     fonte = st.sidebar.selectbox('Fontes', fontes)

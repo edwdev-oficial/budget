@@ -8,8 +8,8 @@ def lancamentos(df, client):
     g_client = client
     st.title('Lançamentos')
     st.divider()
-    cartao = st.selectbox('Cartão',
-        ['', 'Visa Platinum','Visa Signature', 'Nubank'],
+    cartao = st.selectbox('Fonte',
+        ['', 'Conta Corrente Itaú', 'Visa Platinum','Visa Signature', 'Nubank'],
         key='cartao'
     )
     lancamento = st.date_input('Data', format='DD/MM/YYYY', key='lancamento')
