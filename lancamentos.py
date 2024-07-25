@@ -9,7 +9,7 @@ def lancamentos(df, client):
     st.title('Lançamentos')
     st.divider()
     cartao = st.selectbox('Fonte',
-        ['', 'Conta Corrente Itaú', 'Visa Platinum','Visa Signature', 'Nubank'],
+        ['', 'Conta Corrente Itaú', 'Flash', 'Visa Platinum','Visa Signature', 'Nubank'],
         key='cartao'
     )
     lancamento = st.date_input('Data', format='DD/MM/YYYY', key='lancamento')
