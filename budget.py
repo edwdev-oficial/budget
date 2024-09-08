@@ -1,71 +1,4 @@
-# import plotly.express as px
-# import streamlit as st
-# import pandas as pd
-# import utils
-
-# def show_budget(df):
-
-#     df = df.sort_values(by=['Programação', 'Valor Programado'], ascending=[True, False])
-#     df = df.reset_index(drop=True)
-#     df['Saldo'] = df['Valor Programado'].cumsum()    
-
-#     df['Data de Lançamento'] = pd.to_datetime(df['Data de Lançamento'])
-    
-#     datas_lancamento = df[df['Data de Lançamento'] >= '2024-07-08']
-#     datas_lancamento = datas_lancamento.groupby(by=['Data de Lançamento']).size().reset_index(name='Count')
-#     datas_lancamento['Data de Lançamento'] = datas_lancamento['Data de Lançamento'].dt.strftime('%d/%m/%Y')
-
-#     select_data = st.sidebar.selectbox('Lançamento', datas_lancamento['Data de Lançamento'])
-#     lancamentos_ate = pd.to_datetime(select_data, dayfirst=True)
-
-#     df_budget = df[
-#         (df['Data de Lançamento'] <= lancamentos_ate) | (df['Data de Lançamento'] > '2024-11-01')
-#     ]
-#     df_budget = df_budget[['Programação', 'Valor Programado']]
-#     df_budget = df_budget.groupby(by='Programação').sum()
-#     df_budget = df_budget.reset_index()
-#     df_budget['Saldo'] = df_budget['Valor Programado'].cumsum()
-
-#     df_budget_atualizado = df[['Programação', 'Valor Programado']]
-#     df_budget_atualizado = df_budget_atualizado.groupby(by='Programação').sum()
-#     df_budget_atualizado = df_budget_atualizado.reset_index()
-#     df_budget_atualizado['Saldo'] = df_budget_atualizado['Valor Programado'].cumsum()
-
-#     df_budget_budget_atualizado = pd.merge(df_budget, df_budget_atualizado, on='Programação')
-#     df_budget_budget_atualizado = df_budget_budget_atualizado.reset_index(drop=True)
-#     df_budget_budget_atualizado = df_budget_budget_atualizado.rename(columns={'Saldo_x': 'Sdo Programado'})
-#     df_budget_budget_atualizado = df_budget_budget_atualizado.rename(columns={'Saldo_y': 'Sdo Atualizado'})
-
-#     fig = px.line(
-#         df_budget_budget_atualizado,
-#         x='Programação',
-#         y=['Sdo Programado','Sdo Atualizado'],
-#         labels={'value': 'Saldo (R$)', 'variable': 'Legend'}
-#     )
-
-#     st.plotly_chart(fig)
-#     st.write('Budget x Budget Atualizado')
-#     st.dataframe(df_budget_budget_atualizado[['Programação', 'Sdo Programado', 'Sdo Atualizado']])    
-
-#     df_unbudget = df[
-#         (df['Data de Lançamento'] > lancamentos_ate) & 
-#         (df['Data de Lançamento'] < '2024-11-01')
-#     ]
-#     df_unbudget = df_unbudget.drop(columns=['_id'])
-#     df_unbudget = df_unbudget.sort_values(by=['Data de Lançamento']).reset_index(drop=True)
-#     df_unbudget['Saldo'] = df_unbudget['Valor Programado'].cumsum()
-#     unbudget = df_unbudget['Valor Programado'].sum()
-#     st.write(f'Unbudget após {select_data} R$ {utils.format_currency(unbudget)}')
-#     st.dataframe(df_unbudget)
-
-#     st.divider()
-#     st.subheader('Database')
-#     st.dataframe(df)
-
-"""
-Código refatorado
-"""
-
+from datetime import datetime
 import plotly.express as px
 import streamlit as st
 import pandas as pd
@@ -89,13 +22,18 @@ def show_budget(df):
     st.title('Budget')
     st.divider()
 
+    # data = datetime(2024, 7, 10)
+    # st.write(data)
+    # st.write(df['Programação'].dtype)
+
+    # df = df[df['Programação'] <= '2025-01-23']
 
     df = df.sort_values(by=['Programação', 'Valor Programado'], ascending=[True, False]).reset_index(drop=True)
     df['Saldo'] = df['Valor Programado'].cumsum()
 
     # Process dates and filter data
     df['Data de Lançamento'] = pd.to_datetime(df['Data de Lançamento'])
-    datas_lancamento = df[df['Data de Lançamento'] >= '2024-07-08'].groupby(by='Data de Lançamento').size().reset_index(name='Count')
+    datas_lancamento = df[df['Data de Lançamento'] >= '2024-07-10'].groupby(by='Data de Lançamento').size().reset_index(name='Count')
     datas_lancamento = process_date_column(datas_lancamento, 'Data de Lançamento')
 
     select_data = st.sidebar.selectbox('Budget em', datas_lancamento['Data de Lançamento'])
@@ -105,8 +43,12 @@ def show_budget(df):
     datas_programacao = process_date_column(datas_programacao, 'Programação')
     select_datas_programacao = st.sidebar.selectbox('Programação', datas_programacao['Programação'])
 
-    # Budget data
-    df_budget = get_filtered_df(df, 'Data de Lançamento', lancamentos_ate)
+    lancamento_date = datetime(2024, 7, 10)
+    df_budget = df[
+        (df['Data de Lançamento'] <= lancamento_date) |
+        ((df['Data de Lançamento'] > lancamento_date) & (df['percent_unbudget'] == 0))
+    ]
+
     df_budget = calculate_cumsum(df_budget[['Programação', 'Valor Programado']], 'Programação', 'Valor Programado')
 
     # Updated budget data
@@ -128,26 +70,23 @@ def show_budget(df):
     fig.update_traces(textposition='top center')
     st.plotly_chart(fig)
 
-
-
     st.write('Budget x Budget Atualizado')
     st.dataframe(df_merged_budget[['Programação', 'Sdo Programado', 'Sdo Atualizado']])
 
-    # Filtro por Programação
-    # df_filtered = df[df['Programação'] == select_datas_programacao]
-    df_filtered = df[df['Programação'] == pd.to_datetime(select_datas_programacao, format='%d/%m/%Y')]
-    df_filtered = df_filtered.sort_values(by=['Data de Lançamento'], ascending=[True])
-    df_filtered = df_filtered.groupby(by='Fonte').sum('Valor Programado').drop(columns=['Saldo'])
-    st.write(f'Programação para a data {select_datas_programacao}')
-    st.dataframe(df_filtered)
-
     # Unbudget data
-    df_unbudget = df[(df['Data de Lançamento'] > lancamentos_ate) & (df['Data de Lançamento'] < '2024-11-01')].drop(columns=['_id'])
-    df_unbudget = df_unbudget.sort_values(by='Data de Lançamento').reset_index(drop=True)
-    df_unbudget['Saldo'] = df_unbudget['Valor Programado'].cumsum()
-    unbudget = df_unbudget['Valor Programado'].sum()
+    df_unbudget = df[
+        (df['Data de Lançamento'] > lancamentos_ate) 
+        & 
+        (df['percent_unbudget'] > 0)
+        # (df['Data de Lançamento'] < '2024-11-01')
+    ].drop(columns=['_id', 'Saldo'])
 
-    dias = (pd.Timestamp.now() - pd.to_datetime(select_data, format='%d/%m/%Y')).days - 1
+    df_unbudget = df_unbudget.sort_values(by='Data de Lançamento').reset_index(drop=True)
+    df_unbudget['Valor unbudget'] = df_unbudget['Valor Programado'] * df_unbudget['percent_unbudget']
+    df_unbudget['Total Unbudget'] = df_unbudget['Valor unbudget'].cumsum()
+    unbudget = df_unbudget['Valor unbudget'].sum()
+
+    dias = (pd.Timestamp.now() - pd.to_datetime(select_data, format='%d/%m/%Y')).days
     media_dia_unbudget = unbudget / dias
 
     st.write(f'Unbudget após {select_data} R$ {utils.format_currency(unbudget)} :worried:')
@@ -156,15 +95,35 @@ def show_budget(df):
         meu_emoj = ':-1:' 
     else: 
         meu_emoj = ':clap:'
-    st.write(f'Média diária R$ {utils.format_currency(media_dia_unbudget)} {meu_emoj}')
+    st.write(f'Média diária em {dias} dias: R$ {utils.format_currency(media_dia_unbudget)} {meu_emoj}')
+    df_unbudget.to_excel('excedente.xlsx')
     st.dataframe(df_unbudget)
 
+    if st.button('Salvar unbudget'):
+        now = datetime.now()
+        now = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+        now = now.replace("-", "").replace(":", "").replace(".", "").replace(" ", "")
+        df_unbudget.to_excel(f'./excel/unbudget{now}.xlsx', )
+
+    # ==========================================================================================================================================
+    # Database
+
     st.divider()
-    df_database = df.drop(columns=['_id'])
+    df_database = df.copy()
+    # df_database = df.drop(columns=['_id'])
     st.subheader('Database')
     st.dataframe(df_database)
 
-    # df_database.to_excel('database.xlsx', )
+    # ==========================================================================================================================================
+
+
+    def save_data_base():
+        now = datetime.now()
+        now = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+        now = now.replace("-", "").replace(":", "").replace(".", "").replace(" ", "")
+        df_database.to_excel(f'./excel/database{now}.xlsx', )
+
+    st.button('Salvar', on_click=save_data_base)
 
     fontes = df['Fonte'].drop_duplicates().sort_values()
     fonte = st.sidebar.selectbox('Fontes', fontes)
@@ -187,5 +146,27 @@ def show_budget(df):
         labels={'value': 'Valor Programado (R$)', 'variable': 'Legend'},
         title=f'Fonte {fonte}'
     )
-    st.plotly_chart(fig)    
+    st.plotly_chart(fig)
+
+
+    # Filtro por Programação
+    st.divider()
+    # df_filtered = df[df['Programação'] == select_datas_programacao]
+    df_filtered = df[df['Programação'] == pd.to_datetime(select_datas_programacao, format='%d/%m/%Y')]
+    df_filtered = df_filtered.sort_values(by=['Data de Lançamento'], ascending=[True])
+    df_filtered = df_filtered.groupby(by='Fonte').sum('Valor Programado').drop(columns=['Saldo'])
+    st.write(f'Programação para a data {select_datas_programacao}')
+    st.dataframe(df_filtered)
+
+    df_filtered = df[
+        (df['Programação'] == pd.to_datetime(select_datas_programacao, format='%d/%m/%Y')) 
+        & 
+        (df['Fonte'] == fonte)
+    ]
+    df_filtered = df_filtered.sort_values(by=['Data de Lançamento'], ascending=[True])
+    total = df_filtered['Valor'].sum()
+    st.write(f'Lançamentos {fonte} programados para {select_datas_programacao}: {utils.format_currency(total)}')
+    st.dataframe(df_filtered)
+
+    # df_filtered.to_excel('Fatura Cartão.xlsx')
 
