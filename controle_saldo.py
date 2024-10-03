@@ -61,6 +61,13 @@ def show_controle_saldo(df):
 
     grid_options = gb.build()
 
+    hoje = pd.to_datetime('today').normalize()
+
+    df_ultimo_registro_anterior = df_group[df_group['Programação'] < hoje].iloc[[-1]]
+
+    df_group = df_group[df_group['Programação'] >= hoje]
+    df_group = pd.concat([df_ultimo_registro_anterior, df_group], ignore_index=True)
+
     grid_response = AgGrid(
         df_group,
         gridOptions = grid_options,
@@ -72,6 +79,7 @@ def show_controle_saldo(df):
         width ='100%',
         reload_data = True
     )
+
  
     selected_rows = grid_response['selected_rows']
     if selected_rows is not None and len(selected_rows) > 0:

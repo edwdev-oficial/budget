@@ -1,32 +1,21 @@
-from pymongo.mongo_client import MongoClient
-from pymongo.server_api import ServerApi
-import streamlit as st
 import pandas as pd
-from budget import show_budget
-from lancamentos import lancamentos
-from controle_cartoes import show_controle_cartoes
-from controle_saldo import show_controle_saldo
+import streamlit as st
 from home import show_home
+from budget import show_budget
+from database import collection
+from lancamentos import lancamentos
+from controle_saldo import show_controle_saldo
+from controle_cartoes import show_controle_cartoes
 
 # Configuração da página
 st.set_page_config(layout='wide')
 
-# Função para conectar ao MongoDB
-def connect_to_mongo(uri):
-    client = MongoClient(uri, server_api=ServerApi('1'))
-    try:
-        client.admin.command('ping')
-        print('Pinged your deployment. You successfully connected to MongoDB!')
-    except Exception as e:
-        print(e)
-    return client
+# Seleção de estado
+estado = st.sidebar.selectbox('Selecione', ['Home', 'Lançamentos', 'Budget', 'Controle Cartões de Crédito', 'Controle Saldo'])
+st.sidebar.divider()
 
 # Função para obter dados do MongoDB
-def get_data_from_mongo(client, estado):
-    db = client["cont_fin"]
-    collection = db['budget_test']
-    global g_collection
-    g_collection = collection
+def get_data_from_mongo(collection):
     documents = collection.find()
     data = []
     for doc in documents:
@@ -35,28 +24,17 @@ def get_data_from_mongo(client, estado):
     df = pd.DataFrame(data)
     return df    
 
-# Credenciais do MongoDB
-user = st.secrets['mongo_atlas']['user']
-password = st.secrets['mongo_atlas']['password']
-uri = f'mongodb+srv://{user}:{password}@sandbox.bfpzo.mongodb.net/'
-
-# Conexão ao MongoDB
-client = connect_to_mongo(uri)
-
-# Seleção de estado
-estado = st.sidebar.selectbox('Selecione', ['Home', 'Lançamentos', 'Budget', 'Controle Cartões de Crédito', 'Controle Saldo'])
-st.sidebar.divider()
-
+collection = collection()
 # Obtenção de dados e chamada da função apropriada
-df = get_data_from_mongo(client, estado)
+df = get_data_from_mongo(collection)
 
 if df is not None:
     if estado == 'Home':
-        show_home(g_collection)
+        show_home(collection)
+    elif estado == 'Lançamentos':
+        lancamentos(df, collection)
     elif estado == 'Budget':
         show_budget(df)
-    elif estado == 'Lançamentos':
-        lancamentos(df, client, g_collection)
     elif estado == 'Controle Cartões de Crédito':
         show_controle_cartoes(df)
     elif estado == 'Controle Saldo':

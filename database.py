@@ -8,6 +8,7 @@ uri = f'mongodb+srv://{user}:{password}@sandbox.bfpzo.mongodb.net/'
 client = MongoClient(uri, server_api=ServerApi('1'))
 db = client['cont_fin']
 def collection():
+    # collection = db['budget']
     collection = db['budget_test']
     return collection
 
