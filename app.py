@@ -6,12 +6,13 @@ from database import collection
 from lancamentos import lancamentos
 from controle_saldo import show_controle_saldo
 from controle_cartoes import show_controle_cartoes
+from fonte_recurso import select_font
 
 # Configuração da página
 st.set_page_config(layout='wide')
 
 # Seleção de estado
-estado = st.sidebar.selectbox('Selecione', ['Home', 'Lançamentos', 'Budget', 'Controle Cartões de Crédito', 'Controle Saldo'])
+estado = st.sidebar.selectbox('Selecione', ['Home', 'Lançamentos', 'Budget', 'Controle Cartões de Crédito', 'Controle Saldo', 'Fonte de Recurso'])
 st.sidebar.divider()
 
 # Função para obter dados do MongoDB
@@ -39,3 +40,5 @@ if df is not None:
         show_controle_cartoes(df)
     elif estado == 'Controle Saldo':
         show_controle_saldo(df)
+    elif estado == 'Fonte de Recurso':
+        select_font()

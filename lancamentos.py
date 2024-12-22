@@ -14,11 +14,11 @@ def lancamentos(df, collection):
     st.title('Lançamentos')
     st.divider()
 
-    st.toggle('Despesas Mensais', True, key='despesas_mensais')
+    st.toggle('Despesas Mensais', True, key='abater_recurso')
 
-    cartao = st.selectbox('Fonte',
+    fonte = st.selectbox('Fonte',
         ['', 'Conta Corrente Itaú', 'Flash', 'Visa Platinum','Visa Signature', 'Nubank'],
-        key='cartao'
+        key='fonte'
     )
     lancamento = st.date_input('Data', format='DD/MM/YYYY', key='lancamento')
     descricao = st.text_input("Descrição", key="descricao")
@@ -65,9 +65,9 @@ def salvar( ):
     month = lancamento_date.month
     year = lancamento_date.year
 
-    despesas_mensais = st.session_state.despesas_mensais
+    abater_recurso = st.session_state.abater_recurso
 
-    if despesas_mensais:
+    if abater_recurso:
 
         doc = collection.aggregate([
             {
@@ -105,11 +105,12 @@ def salvar( ):
     else:
         percent_unbudget = 1
 
+    createdAt = datetime.now()
     for parcela in range(parcelas):
 
         data = {}
         data['Data de Lançamento'] = datetime.combine(st.session_state.lancamento, datetime.min.time())
-        data['Fonte'] = st.session_state.cartao
+        data['Fonte'] = st.session_state.fonte
         data['Descrição'] = st.session_state.descricao
         vencimento =  st.session_state.vencimento + relativedelta(months=parcela)
         data['Vencimento'] = datetime.combine(vencimento, datetime.min.time())
@@ -118,10 +119,12 @@ def salvar( ):
         data['Valor Programado'] = valor_parcela * -1
         data['Categoria'] = category_customized
         data['percent_unbudget'] = percent_unbudget
+        data['parcela'] = f'{parcela + 1} de {parcelas}'
+        data['createdAt'] = createdAt
 
         collection.insert_one(data)
 
-    st.session_state.cartao = ""
+    st.session_state.fonte = ""
     st.session_state['data'] = date.today()
     st.session_state['descricao'] = ""
     st.session_state['vencimento'] = date.today()
