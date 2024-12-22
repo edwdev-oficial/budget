@@ -20,8 +20,6 @@ def select_font():
     df = df[df['parcela'] == '1 de 1']
     df.drop(['percent_unbudget', 'parcela', 'createdAt'], axis=1, inplace=True)
 
-    st.dataframe(df)
-
     gb = GridOptionsBuilder.from_dataframe(df)
     gb.configure_selection('single')
     gb.configure_column('_id', hide=True)
@@ -54,10 +52,9 @@ def select_font():
         df['Programação'] = pd.to_datetime(df['Programação'])
         df['Valor'] = df['Valor'].astype(float)
         df['Valor Programado'] = df['Valor Programado'].astype(float)
-        # st.write(f'Recurso: {df.iloc[0]['Descrição']}')
-        # st.write(f'Valor Programado: {df.iloc[0]['Valor Programado'] * -1}')
-        # st.write(f'Programação: {df.iloc[0]['Programação']}')
-        st.dataframe(df)
+        st.write(f'Recurso: {df.iloc[0]['Descrição']}')
+        st.write(f'Valor Programado: {df.iloc[0]['Valor Programado'] * -1}')
+        st.write(f'Programação: {df.iloc[0]['Programação']}')
         data=df.to_dict('records')
         collection_recurso.insert_many(data)
 
