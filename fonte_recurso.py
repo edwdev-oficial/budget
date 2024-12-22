@@ -11,14 +11,16 @@ def select_font():
     st.header('Fonte de Recurso')
     st.divider()
 
-    # documents = collection_budget.find()
-    # data = []
-    # for doc in documents:
-    #     doc['_id'] = str(doc['_id'])
-    #     data.append(doc)
-    # df = pd.DataFrame(data)
-    # df = df[df['parcela'] == '1 de 1']
-    # df.drop(['percent_unbudget', 'parcela', 'createdAt'], axis=1, inplace=True)
+    documents = collection_budget.find()
+    data = []
+    for doc in documents:
+        doc['_id'] = str(doc['_id'])
+        data.append(doc)
+    df = pd.DataFrame(data)
+    df = df[df['parcela'] == '1 de 1']
+    df.drop(['percent_unbudget', 'parcela', 'createdAt'], axis=1, inplace=True)
+
+    st.dataframe(df)
 
     # gb = GridOptionsBuilder.from_dataframe(df)
     # gb.configure_selection('single')
