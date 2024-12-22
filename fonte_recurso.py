@@ -1,11 +1,11 @@
-# import pandas as pd
+import pandas as pd
 import streamlit as st
-# from database import get_database
+from database import get_database
 # from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, GridUpdateMode
 
-# db = get_database()
-# collection_budget = db['budget_test']
-# collection_recurso = db['recurso']
+db = get_database()
+collection_budget = db['budget_test']
+collection_recurso = db['recurso']
 
 def select_font():
     st.header('Fonte de Recurso')
