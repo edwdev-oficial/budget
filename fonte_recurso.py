@@ -42,7 +42,6 @@ def select_font():
     selected_rows = grid_response['selected_rows']
     if selected_rows is not None and len(selected_rows) > 0:
         selected_row = selected_rows.iloc[0]
-        selected_row['id_recurso'] = selected_row['_id']
         # st.write(selected_row)
         # st.write(selected_row['_id'])
         # st.write(selected_row['id_recurso'])
