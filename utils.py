@@ -11,3 +11,10 @@ def convert_to_serializable(obj):
 
 def format_date(date):
     return date.strftime('%d/%m/%Y')
+
+def handle_docs(documents):
+    data = []
+    for document in documents:
+        document['_id'] = str(document['_id'])
+        data.append(document)
+    return data

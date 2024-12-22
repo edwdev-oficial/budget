@@ -8,3 +8,5 @@ test.py
 excel/
 app_local.py
 over_time.py
+parcelasCasa.py
+temp/

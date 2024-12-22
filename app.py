@@ -30,7 +30,7 @@ df = get_data_from_mongo(collection)
 
 if df is not None:
     if estado == 'Home':
-        show_home(collection)
+        show_home(collection, df)
     elif estado == 'Lançamentos':
         lancamentos(df, collection)
     elif estado == 'Budget':

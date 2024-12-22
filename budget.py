@@ -6,14 +6,17 @@ import numpy as np
 
 def format_currency(valor):
     return f'{valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
+
 def show_budget(df):
+
+    max_date_lancamentos = df['Data de Lançamento'].max()
 
     st.header('Resultado Projetado')
 
     now = pd.to_datetime('now')
     default_budget_date = pd.to_datetime('2024-07-10').date()
     budget_date = st.sidebar.date_input('Budget Em', value=default_budget_date)
-    lancamentos_ate = st.sidebar.date_input('Lançamentos até')
+    lancamentos_ate = st.sidebar.date_input('Lançamentos até', value=max_date_lancamentos)
     budget_date = pd.to_datetime(budget_date)
     lancamentos_ate = pd.to_datetime(lancamentos_ate)
 

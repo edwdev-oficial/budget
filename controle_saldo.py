@@ -6,6 +6,7 @@ import pandas as pd
 from datetime import datetime
 
 def change_all(df):
+
     fields = df.columns.tolist()
     fields.remove('_id')
     change_field = st.selectbox('Field', fields)
@@ -32,6 +33,7 @@ def change_all(df):
             budget.update_one({'_id': _id}, {'$set': novo_valor})
 
 def show_controle_saldo(df):
+    
     st.header('Controle Saldo')
     st.divider()
 
@@ -61,7 +63,10 @@ def show_controle_saldo(df):
 
     grid_options = gb.build()
 
-    hoje = pd.to_datetime('today').normalize()
+    # hoje = pd.to_datetime('today').normalize()
+    date_init = st.sidebar.date_input('A partir de:')
+    st.write(date_init)
+    hoje = pd.to_datetime(date_init).normalize()
 
     df_ultimo_registro_anterior = df_group[df_group['Programação'] < hoje].iloc[[-1]]
 
@@ -132,9 +137,9 @@ def show_controle_saldo(df):
                     fonte = st.text_input('Fonte', selected_row['Fonte'])
                     descricao = st.text_input('Descrição', selected_row['Descrição'])
                     vencimento = st.date_input('Vencimento', datetime.fromisoformat(selected_row['Vencimento']))
-                    valor = st.number_input('Valor', value=selected_row['Valor'])
+                    valor = st.number_input('Valor', value=float(selected_row['Valor']))
                     programacao = st.date_input('Programação', datetime.fromisoformat(selected_row['Programação']))
-                    valor_programado = st.number_input('Valor Programado', value=selected_row['Valor Programado'])
+                    valor_programado = st.number_input('Valor Programado', value=float(selected_row['Valor Programado']))
                     categoria = st.text_input('Categoria', selected_row['Categoria'])
 
                     data_lancamento = datetime.combine(data_lancamento, datetime.min.time())
