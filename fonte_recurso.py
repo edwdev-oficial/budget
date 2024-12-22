@@ -46,7 +46,7 @@ def select_font():
         st.write(selected_row)
         st.write(selected_row['_id'])
         st.write(selected_row['id_recurso'])
-    #     collection_recurso.delete_many({})
+        collection_recurso.delete_many({})
     #     df=pd.DataFrame(selected_row)
     #     df=df.T
     #     df.rename(columns={'_id': 'id_recurso'}, inplace=True)
