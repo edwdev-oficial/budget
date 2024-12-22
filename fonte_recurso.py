@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from database import get_database
-# from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, GridUpdateMode
+from st_aggrid import AgGrid, GridOptionsBuilder, DataReturnMode, GridUpdateMode
 
 db = get_database()
 collection_budget = db['budget_test']
@@ -22,22 +22,22 @@ def select_font():
 
     st.dataframe(df)
 
-    # gb = GridOptionsBuilder.from_dataframe(df)
-    # gb.configure_selection('single')
-    # gb.configure_column('_id', hide=True)
-    # grid_options = gb.build()
+    gb = GridOptionsBuilder.from_dataframe(df)
+    gb.configure_selection('single')
+    gb.configure_column('_id', hide=True)
+    grid_options = gb.build()
 
-    # grid_response = AgGrid(
-    #     df,
-    #     gridOptions = grid_options,
-    #     data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
-    #     update_mode = GridUpdateMode.MODEL_CHANGED,
-    #     theme = 'alpine',
-    #     enable_enterprise_modules = False,
-    #     height = 300,
-    #     width ='100%',
-    #     reload_data = True
-    # )
+    grid_response = AgGrid(
+        df,
+        gridOptions = grid_options,
+        data_return_mode=DataReturnMode.FILTERED_AND_SORTED,
+        update_mode = GridUpdateMode.MODEL_CHANGED,
+        theme = 'alpine',
+        enable_enterprise_modules = False,
+        height = 300,
+        width ='100%',
+        reload_data = True
+    )
 
     # selected_rows = grid_response['selected_rows']
     # if selected_rows is not None and len(selected_rows) > 0:
