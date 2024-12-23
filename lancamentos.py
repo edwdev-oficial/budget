@@ -3,18 +3,42 @@ import streamlit as st
 from bson import ObjectId
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+from database import get_database
+from utils import format_currency
 
-# def lancamentos(df, client, collection):
+db = get_database()
+collection_recursos = db['recurso']
+
+
 def lancamentos(df, collection):
 
-    global category_customized, g_df, g_collection
+    global category_customized, g_df, g_collection, id_recurso
     g_df = df
     g_collection = collection
+    id_recurso = None
 
     st.title('Lançamentos')
     st.divider()
 
-    st.toggle('Despesas Mensais', True, key='abater_recurso')
+    st.toggle('Abater recurso', True, key='abater_recurso')
+
+    abater_recurso = st.session_state.abater_recurso
+
+    doc_recursos = list(collection_recursos.find())
+    if abater_recurso and doc_recursos:
+        data_recursos = []
+        for doc in doc_recursos:
+            doc['_id'] = str(doc['_id'])
+            data_recursos.append(doc)
+        df_recursos = pd.DataFrame(data_recursos)
+        # st.dataframe(df_recursos)
+        # st.write(df_recursos.dtypes)
+        st.write(
+            f"O lançamento será abatido de: {df_recursos.iloc[0]['Descrição']} "
+            f"programado para {df_recursos.iloc[0]['Programação'].strftime('%d/%m/%Y')} "
+            F"no valor de R$ {format_currency(df_recursos.iloc[0]['Valor Programado'] * -1)}"
+        )
+        id_recurso = df_recursos.iloc[0]['id_recurso']
 
     fonte = st.selectbox('Fonte',
         ['', 'Conta Corrente Itaú', 'Flash', 'Visa Platinum','Visa Signature', 'Nubank'],
@@ -27,7 +51,8 @@ def lancamentos(df, collection):
     with col1:
         parcelas = st.number_input("Parcelamento", min_value=1, step=1, key="parcelas")
     with col2:
-        valor = st.text_input("Valor", key="valor")
+        # valor = st.text_input("Valor", key="valor")
+        valor = st.number_input("Valor", step=0.01, key="valor")
 
     df_sort = df.sort_values(by='Categoria', ascending=True).reset_index()
     df_unique = pd.DataFrame(df_sort['Categoria'].unique(), columns=['Categoria'])
@@ -57,7 +82,8 @@ def lancamentos(df, collection):
 def salvar( ):
 
     collection = g_collection
-    valor = float(st.session_state.valor.replace(',', '.'))
+    # valor = float(st.session_state.valor.replace(',', '.'))
+    valor = st.session_state.valor
     parcelas = st.session_state.parcelas
     valor_parcela = valor / parcelas
 
@@ -67,19 +93,25 @@ def salvar( ):
 
     abater_recurso = st.session_state.abater_recurso
 
-    if abater_recurso:
+    if abater_recurso and id_recurso:
+
+        # doc = collection.aggregate([
+        #     {
+        #         "$match": {
+        #             "$expr": {
+        #                 "$and" : [
+        #                     {"$eq": ["$Categoria", "Despesas Mensais"]},
+        #                     {"$eq": [{"$month": "$Vencimento"}, month]},
+        #                     {"$eq": [{"$year": "$Vencimento"}, year]}
+        #                 ]
+        #             }
+        #         }
+        #     }
+        # ])
 
         doc = collection.aggregate([
             {
-                "$match": {
-                    "$expr": {
-                        "$and" : [
-                            {"$eq": ["$Categoria", "Despesas Mensais"]},
-                            {"$eq": [{"$month": "$Vencimento"}, month]},
-                            {"$eq": [{"$year": "$Vencimento"}, year]}
-                        ]
-                    }
-                }
+                "$match": { "_id": ObjectId(id_recurso) }
             }
         ])
 
@@ -93,13 +125,16 @@ def salvar( ):
 
             if valor * -1 > despesas_programadas:
                 collection.update_one({"_id": _id}, {'$set': {'Valor Programado': despesas_programadas - valor * -1}})
+                collection_recursos.update_one({}, {'$set': {'Valor Programado': despesas_programadas - valor * -1}})
 
             elif valor * -1 == despesas_programadas:
                 collection.delete_one({"_id": _id})
+                collection_recursos.delete_many({})
 
             elif valor * -1 < despesas_programadas:
                 percent_unbudget = (valor * -1 - despesas_programadas) / valor * -1
                 collection.delete_one({"_id": _id})
+                collection_recursos.delete_many({})
         else:
             percent_unbudget = 1
     else:
@@ -129,6 +164,6 @@ def salvar( ):
     st.session_state['descricao'] = ""
     st.session_state['vencimento'] = date.today()
     st.session_state['parcelas'] = 1
-    st.session_state['valor'] = ""
+    st.session_state['valor'] = 0.00
     st.session_state.categoria = ""
     
