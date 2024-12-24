@@ -9,7 +9,6 @@ from utils import format_currency
 db = get_database()
 collection_recursos = db['recurso']
 
-
 def lancamentos(df, collection):
 
     global category_customized, g_df, g_collection, id_recurso
@@ -31,8 +30,6 @@ def lancamentos(df, collection):
             doc['_id'] = str(doc['_id'])
             data_recursos.append(doc)
         df_recursos = pd.DataFrame(data_recursos)
-        # st.dataframe(df_recursos)
-        # st.write(df_recursos.dtypes)
         st.write(
             f"O lançamento será abatido de: {df_recursos.iloc[0]['Descrição']} "
             f"programado para {df_recursos.iloc[0]['Programação'].strftime('%d/%m/%Y')} "
@@ -51,7 +48,6 @@ def lancamentos(df, collection):
     with col1:
         parcelas = st.number_input("Parcelamento", min_value=1, step=1, key="parcelas")
     with col2:
-        # valor = st.text_input("Valor", key="valor")
         valor = st.number_input("Valor", step=0.01, key="valor")
 
     df_sort = df.sort_values(by='Categoria', ascending=True).reset_index()
@@ -74,15 +70,15 @@ def lancamentos(df, collection):
         category_customized = st.text_input('Especifique a categoria...', key='new_option')
         st.write('Categoria selecionada: ', category_customized)
     else:
-        category_customized = categoria
-        st.write('Categoria selecionada: ', categoria)
+        if categoria:
+            category_customized = categoria
+            st.write('Categoria selecionada: ', categoria)
 
     st.button('Salvar', on_click=salvar)
 
 def salvar( ):
 
     collection = g_collection
-    # valor = float(st.session_state.valor.replace(',', '.'))
     valor = st.session_state.valor
     parcelas = st.session_state.parcelas
     valor_parcela = valor / parcelas
@@ -94,20 +90,6 @@ def salvar( ):
     abater_recurso = st.session_state.abater_recurso
 
     if abater_recurso and id_recurso:
-
-        # doc = collection.aggregate([
-        #     {
-        #         "$match": {
-        #             "$expr": {
-        #                 "$and" : [
-        #                     {"$eq": ["$Categoria", "Despesas Mensais"]},
-        #                     {"$eq": [{"$month": "$Vencimento"}, month]},
-        #                     {"$eq": [{"$year": "$Vencimento"}, year]}
-        #                 ]
-        #             }
-        #         }
-        #     }
-        # ])
 
         doc = collection.aggregate([
             {
@@ -125,29 +107,23 @@ def salvar( ):
 
             if despesas_programadas == 0:
                 percent_unbudget = 1
-                st.write('Veio na primeira opção')
 
             elif valor * -1 > despesas_programadas:
                 collection.update_one({"_id": _id}, {'$set': {'Valor Programado': despesas_programadas - valor * -1}})
                 collection_recursos.update_one({}, {'$set': {'Valor Programado': despesas_programadas - valor * -1}})
-                st.write('Veio na segunda opção')
 
             elif valor * -1 == despesas_programadas:
-                st.write('Veio na terceira opção')
                 collection.update_one({"_id": _id}, {'$set': {'Valor Programado': 0}})
                 collection_recursos.update_one({}, {'$set': {'Valor Programado': 0}})
-            #     collection.delete_one({"_id": _id})
-            #     collection_recursos.delete_many({})
 
             elif valor * -1 < despesas_programadas:
                 collection_recursos.update_one({}, {'$set': {'Valor Programado': 0}})
                 collection.update_one({"_id": _id}, {'$set': {'Valor Programado': 0}})
                 percent_unbudget = (valor * -1 - despesas_programadas) / valor * -1
-                st.write('Veio na quarta opção')
-                # collection.delete_one({"_id": _id})
-                # collection_recursos.delete_many({})
+
         else:
             percent_unbudget = 1
+
     else:
         percent_unbudget = 1
 
@@ -155,7 +131,6 @@ def salvar( ):
     for parcela in range(parcelas):
 
         data = {}
-        st.write('id_recurso:', id_recurso)
         if id_recurso:
             data['id_recurso'] = id_recurso
         data['Data de Lançamento'] = datetime.combine(st.session_state.lancamento, datetime.min.time())
