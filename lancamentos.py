@@ -111,7 +111,7 @@ def salvar( ):
             elif valor * -1 > despesas_programadas:
                 collection.update_one({"_id": _id}, {'$set': {'Valor Programado': despesas_programadas - valor * -1}})
                 collection_recursos.update_one({}, {'$set': {'Valor Programado': despesas_programadas - valor * -1}})
-
+                
             elif valor * -1 == despesas_programadas:
                 collection.update_one({"_id": _id}, {'$set': {'Valor Programado': 0}})
                 collection_recursos.update_one({}, {'$set': {'Valor Programado': 0}})
