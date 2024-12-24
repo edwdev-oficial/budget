@@ -40,18 +40,19 @@ def select_font():
     selected_rows = grid_response['selected_rows']
     if selected_rows is not None and len(selected_rows) > 0:
         selected_row = selected_rows.iloc[0]
-        # st.write(selected_row)
-        # st.write(selected_row['_id'])
-        # st.write(selected_row['id_recurso'])
         collection_recurso.delete_many({})
         df=pd.DataFrame(selected_row)
         df=df.T
+        st.dataframe(df)
+        if 'id_recurso' in df.columns:
+            df.drop(columns=['id_recurso'], inplace=True)
         df.rename(columns={'_id': 'id_recurso'}, inplace=True)
         df['Data de Lançamento'] = pd.to_datetime(df['Data de Lançamento'])
         df['Vencimento'] = pd.to_datetime(df['Vencimento'])
         df['Programação'] = pd.to_datetime(df['Programação'])
         df['Valor'] = df['Valor'].astype(float)
         df['Valor Programado'] = df['Valor Programado'].astype(float)
+        # st.write(f'id_recurso: {df.iloc[0]["id_recurso"]}')
         st.write(f'Recurso: {df.iloc[0]["Descrição"]}')
         st.write(f'Valor Programado: {df.iloc[0]["Valor Programado"] * -1}')
         st.write(f'Programação: {df.iloc[0]["Programação"]}')

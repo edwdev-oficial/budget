@@ -123,18 +123,29 @@ def salvar( ):
 
             percent_unbudget = 0
 
-            if valor * -1 > despesas_programadas:
+            if despesas_programadas == 0:
+                percent_unbudget = 1
+                st.write('Veio na primeira opção')
+
+            elif valor * -1 > despesas_programadas:
                 collection.update_one({"_id": _id}, {'$set': {'Valor Programado': despesas_programadas - valor * -1}})
                 collection_recursos.update_one({}, {'$set': {'Valor Programado': despesas_programadas - valor * -1}})
+                st.write('Veio na segunda opção')
 
             elif valor * -1 == despesas_programadas:
-                collection.delete_one({"_id": _id})
-                collection_recursos.delete_many({})
+                st.write('Veio na terceira opção')
+                collection.update_one({"_id": _id}, {'$set': {'Valor Programado': 0}})
+                collection_recursos.update_one({}, {'$set': {'Valor Programado': 0}})
+            #     collection.delete_one({"_id": _id})
+            #     collection_recursos.delete_many({})
 
             elif valor * -1 < despesas_programadas:
+                collection_recursos.update_one({}, {'$set': {'Valor Programado': 0}})
+                collection.update_one({"_id": _id}, {'$set': {'Valor Programado': 0}})
                 percent_unbudget = (valor * -1 - despesas_programadas) / valor * -1
-                collection.delete_one({"_id": _id})
-                collection_recursos.delete_many({})
+                st.write('Veio na quarta opção')
+                # collection.delete_one({"_id": _id})
+                # collection_recursos.delete_many({})
         else:
             percent_unbudget = 1
     else:
@@ -144,6 +155,9 @@ def salvar( ):
     for parcela in range(parcelas):
 
         data = {}
+        st.write('id_recurso:', id_recurso)
+        if id_recurso:
+            data['id_recurso'] = id_recurso
         data['Data de Lançamento'] = datetime.combine(st.session_state.lancamento, datetime.min.time())
         data['Fonte'] = st.session_state.fonte
         data['Descrição'] = st.session_state.descricao
