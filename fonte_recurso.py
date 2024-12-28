@@ -8,7 +8,7 @@ collection_budget = db['budget_test']
 collection_recurso = db['recurso']
 
 def select_font():
-    st.header('Fonte de Recurso')
+    st.header('Fontes de Recurso')
     st.divider()
 
     documents = collection_budget.find()
@@ -52,11 +52,22 @@ def select_font():
         df['Programação'] = pd.to_datetime(df['Programação'])
         df['Valor'] = df['Valor'].astype(float)
         df['Valor Programado'] = df['Valor Programado'].astype(float)
-        # st.write(f'id_recurso: {df.iloc[0]["id_recurso"]}')
         st.write(f'Recurso: {df.iloc[0]["Descrição"]}')
         st.write(f'Valor Programado: {df.iloc[0]["Valor Programado"] * -1}')
         st.write(f'Programação: {df.iloc[0]["Programação"]}')
         data=df.to_dict('records')
         collection_recurso.insert_many(data)
+    else:
+        document_recurso = collection_recurso.find()
+        data_recurso = []
+        for doc in document_recurso:
+            doc['_id'] = str(doc['_id'])
+            data_recurso.append(doc)
 
+        if len(data_recurso) > 0:
+            df_recurso = pd.DataFrame(data_recurso)
+            st.write('Recurso selecionado:')
+            st.dataframe(df_recurso)
+            if st.button('Apagar recurso'):
+                collection_recurso.delete_many({})
 

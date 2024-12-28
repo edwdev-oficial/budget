@@ -10,3 +10,5 @@ app_local.py
 over_time.py
 parcelasCasa.py
 temp/
+transferencias.py
+saldos.py

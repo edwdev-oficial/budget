@@ -38,7 +38,7 @@ def lancamentos(df, collection):
         id_recurso = df_recursos.iloc[0]['id_recurso']
 
     fonte = st.selectbox('Fonte',
-        ['', 'Conta Corrente Itaú', 'Flash', 'Visa Platinum','Visa Signature', 'Nubank'],
+        ['', 'Conta Corrente Itaú', 'Flash', 'Visa Platinum','Visa Signature', 'Nubank', 'Mercado Pago'],
         key='fonte'
     )
     lancamento = st.date_input('Data', format='DD/MM/YYYY', key='lancamento')
