@@ -8,8 +8,49 @@ from utils import format_currency
 
 db = get_database()
 collection_recursos = db['recurso']
+collection_budget = db['budget_test']
+collection_novos_lancamentos = db['novos_lancamentos']
+collection_sdo_anterior = db['sdo_anteior']
+
+def calc_saldo(date_saldo):
+    df = pd.DataFrame(list(collection_budget.find()))
+    df.sort_values(['Programação', 'Valor Programado'], ascending=[True, False], inplace=True)
+    df.reset_index(drop=True, inplace=True)
+    df['saldo'] = df['Valor Programado'].cumsum()
+    saldo = round(df.loc[df['Programação'] == pd.to_datetime(date_saldo)].iloc[-1]['saldo'], 2)
+    return saldo
+
+def show_impact(abater_recurso, valor_recurso, valor, date_saldo):
+    if abater_recurso and valor_recurso:
+        if valor > 0:
+            if valor > valor_recurso:
+                valor_impacto = valor_recurso - valor
+                st.error(f'Impacto negativo {format_currency(valor_impacto)}')
+                calc_saldo(date_saldo)
+            elif valor < valor_recurso:
+                st.info('Sem impacto')
+            else:
+                st.info('Sem impacto')
+        else:
+            st.success(f'Impacto positivo: {format_currency(valor * -1)}')
+    else:
+        if valor > 0:
+            st.error(f'Impacto negativo: {format_currency(valor * -1)}')
+        else:
+            st.success(f'Impacto positivo: {format_currency(valor * -1)}')
+        saldo = calc_saldo(date_saldo)
+        novo_saldo = saldo - valor
+        st.write(f'''
+            O saldo em {date_saldo} era {format_currency(saldo)}
+            e ficará {format_currency(novo_saldo)}
+        ''')
 
 def lancamentos(df, collection):
+
+    date_saldo = st.sidebar.date_input(
+        'Saldo em:',
+        value=pd.to_datetime('2026-12-31')
+    )
 
     global category_customized, g_df, g_collection, id_recurso
     g_df = df
@@ -23,8 +64,13 @@ def lancamentos(df, collection):
 
     abater_recurso = st.session_state.abater_recurso
 
+    valor_recurso = None
+
     doc_recursos = list(collection_recursos.find())
     if abater_recurso and doc_recursos:
+        valor_recurso = doc_recursos[0]['Valor Programado'] * -1
+        if valor_recurso == -0.00:
+            valor_recurso = 0.00
         data_recursos = []
         for doc in doc_recursos:
             doc['_id'] = str(doc['_id'])
@@ -33,12 +79,12 @@ def lancamentos(df, collection):
         st.write(
             f"O lançamento será abatido de: {df_recursos.iloc[0]['Descrição']} "
             f"programado para {df_recursos.iloc[0]['Programação'].strftime('%d/%m/%Y')} "
-            F"no valor de R$ {format_currency(df_recursos.iloc[0]['Valor Programado'] * -1)}"
+            F"no valor de R$ {format_currency(valor_recurso)}"
         )
         id_recurso = df_recursos.iloc[0]['id_recurso']
 
     fonte = st.selectbox('Fonte',
-        ['', 'Conta Corrente Itaú', 'Flash', 'Visa Platinum','Visa Signature', 'Nubank', 'Mercado Pago'],
+        ['', 'Conta Corrente Itaú', 'Flash', 'Visa Platinum','Visa Signature', 'Nubank', 'Mercado Pago', 'Salário'],
         key='fonte'
     )
     lancamento = st.date_input('Data', format='DD/MM/YYYY', key='lancamento')
@@ -66,6 +112,9 @@ def lancamentos(df, collection):
         key='categoria'
     )
 
+    if valor != 0.00 and valor != -0.00:
+        show_impact(abater_recurso, valor_recurso, valor, date_saldo)
+
     if categoria == 'Outra':
         category_customized = st.text_input('Especifique a categoria...', key='new_option')
         st.write('Categoria selecionada: ', category_customized)
@@ -74,7 +123,37 @@ def lancamentos(df, collection):
             category_customized = categoria
             st.write('Categoria selecionada: ', categoria)
 
+    st.write('Clique no botão abaixo para salvar a inclusão no banco de dados')
+
     st.button('Salvar', on_click=salvar)
+
+    #%% Mostra resultado com os ultimos lançamentos
+    saldo_anterior = list(collection_sdo_anterior.find())[0]['saldo_anterior']
+    ultimos_lancamentos = list(collection_novos_lancamentos.aggregate([
+        {
+            "$group": {
+                "_id": {},
+                # "total_lancamentos": { "$sum": '$Valor Programado' }
+                "total_lancamentos": { "$sum": {"$multiply": ["$Valor Programado", "$percent_unbudget"]} }
+            }
+        },
+
+    ]))
+    if ultimos_lancamentos:
+        saldo_anterior_calculado = calc_saldo(date_saldo)
+        ultimos_lancamentos = ultimos_lancamentos[0]['total_lancamentos']
+        if ultimos_lancamentos:
+            st.divider()
+            st.subheader('Análise dos resultados com os últimos lançamentos acumulados', divider='red')
+            st.write(f'Lançamentos acumulados: {format_currency(ultimos_lancamentos)}')    
+            st.write(f'''
+                O saldo anterior era {format_currency(saldo_anterior)}
+                e com os últimos lançamentos ficou {format_currency(saldo_anterior + ultimos_lancamentos)}
+            ''')
+            if st.button('Reset Ultimos Laçamentos'):
+                collection_novos_lancamentos.delete_many({})
+                collection_sdo_anterior.update_one({}, {'$set': {'saldo_anterior': saldo_anterior_calculado}})
+                st.success('Ultimos lançamentos resetados com sucesso!')
 
 def salvar( ):
 
@@ -147,6 +226,7 @@ def salvar( ):
         data['createdAt'] = createdAt
 
         collection.insert_one(data)
+        collection_novos_lancamentos.insert_one(data)
 
     st.session_state.fonte = ""
     st.session_state['data'] = date.today()
@@ -155,4 +235,3 @@ def salvar( ):
     st.session_state['parcelas'] = 1
     st.session_state['valor'] = 0.00
     st.session_state.categoria = ""
-    

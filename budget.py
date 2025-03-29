@@ -3,6 +3,7 @@ import plotly.express as px
 import streamlit as st
 import pandas as pd
 import numpy as np
+import utils
 
 def format_currency(valor):
     return f'{valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
@@ -115,6 +116,9 @@ def show_budget(df):
         "ChangeBalance": "{:.2f}",
         "Diference": "{:.2f}"
     }))
+    date = df_join.iloc[-1, :]['Programação']
+    total = df_join.iloc[-1, :]['ChangeBalance']
+    st.write(f'Saldo em {utils.format_date(date)}: R$ {utils.format_currency(total)}')
 
 
     #df_unbudget===================================================== 

@@ -147,8 +147,17 @@ def show_controle_cartoes(df):
         title='Vencimento de faturas por cartões',
     )
 
+    st.divider()
+
+    st.write('Vencimento de faturas por cartões')
+    df_nubank = df_filtered[df_filtered['Vencimento'] == pd.to_datetime('2025-02-08')]
+    st.dataframe(df_nubank)
+    total_nubank = df_nubank['Valor Programado'].sum()
+    # total_nubank = df_filtered[df_filtered['Vencimento'] == pd.to_datetime('2025-02-08')].sum()
+    st.write(total_nubank)
     st.plotly_chart(fig)
 
+    st.divider()
 
     vencimento = st.sidebar.date_input('Vencimento')
     df_filtered = df.copy()

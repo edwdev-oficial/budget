@@ -18,3 +18,9 @@ def handle_docs(documents):
         document['_id'] = str(document['_id'])
         data.append(document)
     return data
+
+def objectId_to_string(documents):
+    return list(map(lambda d: {**d, '_id': str(d['_id'])}, documents))
+
+def format_column_currency(x):
+    return f'{x:,.2f}'
