@@ -1,5 +1,7 @@
+import sys
 import pandas as pd
 import streamlit as st
+sys.path.append("/mount/src/budget")
 from home import show_home
 from budget import show_budget
 from database import collection
