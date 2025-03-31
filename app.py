@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-from home import show_home
+# from home import show_home
 from budget import show_budget
 from database import collection
 from lancamentos import lancamentos
