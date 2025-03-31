@@ -399,7 +399,7 @@ def show_controle_saldo(df):
                 }
             )
             st.success('Registro alterado com sucesso!')
-        if st.button(f'Alterar valor {item['_id']}'):
+        if st.button(f"Alterar valor {item['_id']}"):
             collection_budget.update_one(
                 {'_id': item['_id']},
                 {'$set': {
