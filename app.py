@@ -1,6 +1,6 @@
 import pandas as pd
 import streamlit as st
-# from home import show_home
+from home import show_home
 from budget import show_budget
 from database import collection
 from lancamentos import lancamentos
@@ -30,18 +30,18 @@ collection = collection()
 # Obtenção de dados e chamada da função apropriada
 df = get_data_from_mongo(collection)
 
-# if df is not None:
-#     if estado == 'Home':
-#         show_home(df)
-#     elif estado == 'Lançamentos':
-#         lancamentos(df, collection)
-#     elif estado == 'Budget':
-#         show_budget(df)
-#     elif estado == 'Controle Cartões de Crédito':
-#         show_controle_cartoes(df)
-#     elif estado == 'Controle Saldo':
-#         show_controle_saldo(df)
-#     elif estado == 'Fonte de Recurso':
-#         select_font()
-#     elif estado == 'Ultimos Lançamentos':
-#         ultimos_lancamentos.show_page(df)        
+if df is not None:
+    if estado == 'Home':
+        show_home(df)
+    elif estado == 'Lançamentos':
+        lancamentos(df, collection)
+    elif estado == 'Budget':
+        show_budget(df)
+    elif estado == 'Controle Cartões de Crédito':
+        show_controle_cartoes(df)
+    elif estado == 'Controle Saldo':
+        show_controle_saldo(df)
+    elif estado == 'Fonte de Recurso':
+        select_font()
+    elif estado == 'Ultimos Lançamentos':
+        ultimos_lancamentos.show_page(df)        
