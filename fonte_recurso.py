@@ -18,7 +18,49 @@ def select_font():
         data.append(doc)
     df = pd.DataFrame(data)
     # df = df[df['parcela'] == '1 de 1']
-    df.drop(['percent_unbudget', 'parcela', 'createdAt'], axis=1, inplace=True)
+    df.drop([
+        'percent_unbudget',
+        'parcela',
+        'createdAt'
+    ],axis=1, inplace=True)
+    not_include = ['Cartão Carrefour',
+        'Visa Platinum',
+        'Visa Signature',
+        'Nubank',
+        'Flash',
+        'Credito Imobiliário',
+        'Custo Fixo',
+        'Salário',
+        'Bitcoin',
+        'Pgto Contas',
+        'TV Assinatura',
+        'Produto Itaú',
+        'Pagamento de Juros',
+        'Mercado Pago',
+        'Conta Corrente Mercado Pago'
+    ]
+
+    min_date = df['Programação'].min()
+    st.write(min_date)
+    max_date = df['Programação'].max()
+    init_date = pd.to_datetime(
+        st.sidebar.date_input(
+            'Programados a partir de',
+            min_value=min_date,
+            max_value=max_date
+        )
+    )
+
+    df['id_recurso'] = df['id_recurso'].fillna('')
+
+    df = df.loc[
+        (~df['Fonte'].isin(not_include))
+        &
+        (df['Programação'] >= init_date)
+        &
+        (df['id_recurso'] == "")
+    ]
+    df.sort_values(['Programação'], inplace=True)
 
     gb = GridOptionsBuilder.from_dataframe(df)
     gb.configure_selection('single')

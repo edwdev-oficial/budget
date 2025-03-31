@@ -12,14 +12,51 @@ def show_home(df):
     collection_recurso = db['recurso']
     doc_recurso = list(collection_recurso.find())
 
+
     if doc_recurso:
         saldo = doc_recurso[0]['Valor Programado'] * -1
         if saldo == -0.00: saldo = 0.00
         st.title(f'Saldo {doc_recurso[0]["Descrição"]}')
         st.title(f'R$ {utils.format_currency(saldo)}')
 
-        st.divider()
-        
+        #%% Correção do percentual unbudget
+        # st.divider()
+        # st.write('O percent_unbudget do lançamento 67e2f148024ac619e1ab1cb4 era 0,595112505842289')
+        # df_recurso = pd.DataFrame(doc_recurso)
+        # # df_recurso['id_recurso'] = df_recurso['_id'].apply(lambda x: str(x))
+        # st.dataframe(df_recurso)
+
+        # df_verificador = df.copy()
+        # df_verificador['_id'] = df_verificador['_id'].apply(lambda x: str(x))
+        # df_verificador = df_verificador.loc[df_verificador['id_recurso'].isin(df_recurso['id_recurso'])].reset_index(drop=True)
+        # # df_verificador['percent_unbudget'] = df_verificador['Valor Programado'] / df_verificador['Valor']
+        # df_verificador['Total Acumulado'] = df_verificador['Valor Programado'].cumsum()
+
+        # total_anterior = df_verificador.loc[df_verificador['_id'] == '67e2f0b5024ac619e1ab1cb3', 'Total Acumulado'].values[0] * -1
+        # saldo_verba = 3000 - total_anterior
+        # valor_gasto = df_verificador.loc[df_verificador['_id'] == '67e2f148024ac619e1ab1cb4', 'Valor Programado'].values[0] * -1
+        # gasto_acima_da_verba = valor_gasto - saldo_verba
+        # percentual_unbudget = gasto_acima_da_verba / valor_gasto
+        # st.write(f'Total acumulado anterior: {utils.format_currency(total_anterior)}')
+        # st.write(f'Saldo verba: {utils.format_currency(saldo_verba)}')
+        # st.write(saldo_verba)
+        # st.write(f'Valor gasto: {utils.format_currency(valor_gasto)}')
+        # st.write(f'Gasto acima da verba: {utils.format_currency(gasto_acima_da_verba)}')
+        # st.write(f'Percentual unbudget: {percentual_unbudget}')
+
+        # df_verificador.loc[df_verificador['_id'] == '67e2f148024ac619e1ab1cb4', 'percent_unbudget'] = percentual_unbudget
+        # valor_ubudget = df_verificador['Valor Programado'] * df_verificador['percent_unbudget']
+
+        # st.dataframe(df_verificador, use_container_width=True)
+        # st.write(f'Total unbudget: {utils.format_currency(valor_ubudget.sum())}')
+
+        # if st.button('Corrigir percentual unbudget'):
+        #     collection_budget = db['budget_test']
+        #     collection_budget.update_one(
+        #         {'_id': ObjectId('67e2f148024ac619e1ab1cb4')},
+        #         {'$set': {'percent_unbudget': percentual_unbudget}}
+        #     )
+        #%% Continuação do código
         df = df.drop(columns=[
             # '_id',
             'Vencimento',
@@ -45,8 +82,9 @@ def show_home(df):
                     df_unbudget = df_unbudget.copy()
                     df_unbudget['valor_unbudget'] = df_unbudget['Valor Programado'] * df['percent_unbudget'] 
                     total_unbudget = df_unbudget['valor_unbudget'].sum() * -1
-                    st.write(f'<h1 style="color:red">Sua verba está estourada em: R$ {utils.format_currency(total_unbudget)}</h1>', unsafe_allow_html=True)
+                    st.write(f'<h1 style="color:red">A verba para {doc_recurso[0]['Descrição']} está estourada em: R$ {utils.format_currency(total_unbudget)}</h1>', unsafe_allow_html=True)
 
+    #%% Verificar o que este código faz
     #     # if st.button('Corrigir percentuais ungudget'):
 
     #     #     valor_programado = -3000

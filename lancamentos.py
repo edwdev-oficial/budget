@@ -169,7 +169,6 @@ def salvar( ):
     abater_recurso = st.session_state.abater_recurso
 
     if abater_recurso and id_recurso:
-
         doc = collection.aggregate([
             {
                 "$match": { "_id": ObjectId(id_recurso) }
@@ -185,6 +184,7 @@ def salvar( ):
             percent_unbudget = 0
 
             if despesas_programadas == 0:
+                st.title('Veio em despesas_programadas == 0')
                 percent_unbudget = 1
 
             elif valor * -1 > despesas_programadas:
