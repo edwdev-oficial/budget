@@ -385,7 +385,7 @@ def show_controle_saldo(df):
         if st.button(f'Excluir {item["_id"]}'):
             collection_budget.delete_one({"_id": item['_id']})
             st.success('Registro excluído com sucesso!')
-        if st.button(f'Alterar Vencimento {item['_id']}'):
+        if st.button(f"Alterar Vencimento {item['_id']}"):
             month = item['Vencimento'].month
             year = item['Vencimento'].year
             new_date = pd.to_datetime(f'{year}-{month}-10')
