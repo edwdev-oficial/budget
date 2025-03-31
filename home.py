@@ -82,7 +82,7 @@ def show_home(df):
                     df_unbudget = df_unbudget.copy()
                     df_unbudget['valor_unbudget'] = df_unbudget['Valor Programado'] * df['percent_unbudget'] 
                     total_unbudget = df_unbudget['valor_unbudget'].sum() * -1
-                    st.write(f'<h1 style="color:red">A verba para {doc_recurso[0]['Descrição']} está estourada em: R$ {utils.format_currency(total_unbudget)}</h1>', unsafe_allow_html=True)
+                    st.write(f'<h1 style="color:red">A verba para {doc_recurso[0]["Descrição"]} está estourada em: R$ {utils.format_currency(total_unbudget)}</h1>', unsafe_allow_html=True)
 
     #%% Verificar o que este código faz
     #     # if st.button('Corrigir percentuais ungudget'):
