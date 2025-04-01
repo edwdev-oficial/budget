@@ -1,3 +1,4 @@
+import os
 import utils
 import pandas as pd
 import streamlit as st
@@ -6,7 +7,24 @@ from database import get_database
 from bson import ObjectId
 from dateutil.relativedelta import relativedelta
 
-def show_home(df):
+def open_database_xlsx():
+    files = os.listdir('./excel')
+    files = [item for item in files if item.startswith('database')]
+    files.sort(key=lambda x: os.path.getmtime(f'./excel/{x}'))
+    file = files[-1]
+    file_path = f"./excel/{file}"
+    abs_path = os.path.abspath(file_path)
+    if os.path.exists(abs_path):
+        os.startfile(abs_path)
+    else:
+        st.error("Arquivo não encontrado.")    
+        
+
+def show_home(df, open_sheet=False):
+
+    if open_sheet:
+        if st.sidebar.button('Abrir database xlsx'):
+            open_database_xlsx()
 
     db = get_database()
     collection_recurso = db['recurso']
@@ -84,89 +102,95 @@ def show_home(df):
                     total_unbudget = df_unbudget['valor_unbudget'].sum() * -1
                     st.write(f'<h1 style="color:red">A verba para {doc_recurso[0]["Descrição"]} está estourada em: R$ {utils.format_currency(total_unbudget)}</h1>', unsafe_allow_html=True)
 
-    #%% Verificar o que este código faz
-    #     # if st.button('Corrigir percentuais ungudget'):
+        #%% Verificar o que este código faz
+        # if st.button('Corrigir percentuais ungudget'):
 
-    #     #     valor_programado = -3000
-    #     #     estouro = 0
-    #     #     list_dict = []
+        #     valor_programado = -3000
+        #     estouro = 0
+        #     list_dict = []
 
-    #     #     for index, row in df.iterrows():
-    #     #         # st.write(row)
-    #     #         percent_ubudget = 0
-    #     #         if valor_programado < row['Valor Programado']:
-    #     #             percent_ubudget = 0
-    #     #         elif valor_programado == row['Valor Programado']:
-    #     #             percent_ubudget = 0
-    #     #         else:
-    #     #             if valor_programado == 0:
-    #     #                 percent_ubudget = 1
-    #     #             else:
-    #     #                 diferenca = row['Valor Programado'] - saldo
-    #     #                 percent_ubudget = diferenca / row['Valor Programado']
-    #     #         saldo = valor_programado - row['Valor Programado']
-    #     #         if saldo > 0: saldo = 0
-    #     #         estouro = estouro + row['Valor Programado'] * percent_ubudget 
-    #     #         dict_row = {
-    #     #             '_id': row['_id'],
-    #     #             'Valor Programado': row['Valor Programado'],
-    #     #             'percent_unbudget': row['percent_unbudget'],
-    #     #             'novo_percent_unbudget': percent_ubudget,
-    #     #             'saldo': saldo,
-    #     #             'estouro': estouro
-    #     #         }
-    #     #         valor_programado = saldo
-    #     #         list_dict.append(dict_row)
+        #     for index, row in df.iterrows():
+        #         # st.write(row)
+        #         percent_ubudget = 0
+        #         if valor_programado < row['Valor Programado']:
+        #             percent_ubudget = 0
+        #         elif valor_programado == row['Valor Programado']:
+        #             percent_ubudget = 0
+        #         else:
+        #             if valor_programado == 0:
+        #                 percent_ubudget = 1
+        #             else:
+        #                 diferenca = row['Valor Programado'] - saldo
+        #                 percent_ubudget = diferenca / row['Valor Programado']
+        #         saldo = valor_programado - row['Valor Programado']
+        #         if saldo > 0: saldo = 0
+        #         estouro = estouro + row['Valor Programado'] * percent_ubudget 
+        #         dict_row = {
+        #             '_id': row['_id'],
+        #             'Valor Programado': row['Valor Programado'],
+        #             'percent_unbudget': row['percent_unbudget'],
+        #             'novo_percent_unbudget': percent_ubudget,
+        #             'saldo': saldo,
+        #             'estouro': estouro
+        #         }
+        #         valor_programado = saldo
+        #         list_dict.append(dict_row)
 
-    #     #     collection_budget_test = db['budget_test']
-    #     #     for dict in list_dict:
-    #     #         id = ObjectId(dict['_id'])
-    #     #         new_percent_ubudget = dict['novo_percent_unbudget'] 
-    #     #         st.write(id)
-    #     #         st.write(new_percent_ubudget)
-    #     #         collection_budget_test.update_one(
-    #     #             {'_id': id},
-    #     #             {'$set': {'percent_unbudget': new_percent_ubudget}}
-    #     #         )
+        #     st.write(list_dict)
 
-    #     # if st.button('Ver gasto com viagens'):
-    #     #     collection_budget = db['budget_test']
-    #     #     df_budget_alvo = pd.DataFrame(list(collection_budget.find(
-    #     #         {
-    #     #             'Categoria': 'Viagens',
-    #     #             '$and': [
-    #     #                 {'Data de Lançamento': {'$gte': datetime(2025, 1, 1)}},
-    #     #                 {'Data de Lançamento': {'$lte': datetime(2025, 1, 10)}}                        
-    #     #             ]
-    #     #         }
-    #     #     )))
-    #     #     df_budget_alvo['Acumulado'] = df_budget_alvo['Valor Programado'].cumsum()
-    #     #     st.dataframe(df_budget_alvo)
-    #     #     total_viagem = df_budget_alvo['Valor Programado'].sum() * -1
-    #     #     st.write(f'<h1 style="color:red">Gasto com viagems no período selecionado: R$ {utils.format_currency(total_viagem)}</h1>', unsafe_allow_html=True)
-    #     #     st.markdown(f'<h1 style="color:red;">Gasto com viagens no período selecionado: R$ {utils.format_currency(total_viagem)}</h1>', unsafe_allow_html=True)
-    #     #     st.write(f'## :red[Gasto com viagens no período selecionado: R$ {utils.format_currency(total_viagem)}]')
+        #     collection_budget_test = db['budget_test']
+        #     for dict in list_dict:
+        #         id = ObjectId(dict['_id'])
+        #         new_percent_ubudget = dict['novo_percent_unbudget'] 
+        #         st.write(id)
+        #         st.write(new_percent_ubudget)
+        #         collection_budget_test.update_one(
+        #             {'_id': id},
+        #             {'$set': {'percent_unbudget': new_percent_ubudget}}
+        #         )
+        #         st.success('Percentuais unbudget currigidos com Sucesso!')
 
-    #     # if st.button('Ver despesas'):
-    #     #     collection_budget = db['budget_test']
-    #     #     df_budget_alvo = pd.DataFrame(list(collection_budget.find(
-    #     #         {
-    #     #             'Categoria': {'$ne': 'Transferências'},  	
-    #     #             '$and': [
-    #     #                 {'Data de Lançamento': {'$gte': datetime(2025, 1, 1)}},
-    #     #                 {'Data de Lançamento': {'$lte': datetime(2025, 1, 31)}}                        
-    #     #             ]
-    #     #         }
-    #     #     )))
-    #     #     df_budget_alvo['Acumulado'] = df_budget_alvo['Valor Programado'].cumsum()
-    #     #     st.dataframe(df_budget_alvo)
-    #     #     total_viagem = df_budget_alvo['Valor Programado'].sum() * -1
-    #     #     st.markdown(f'<h1 style="color:red;">Gastos no período selecionado: R$ {utils.format_currency(total_viagem)}</h1>', unsafe_allow_html=True)
+        #%% Ver gastos com viagens
+        # if st.button('Ver gasto com viagens'):
+        #     collection_budget = db['budget_test']
+        #     df_budget_alvo = pd.DataFrame(list(collection_budget.find(
+        #         {
+        #             'Categoria': 'Viagens',
+        #             '$and': [
+        #                 {'Data de Lançamento': {'$gte': datetime(2025, 1, 1)}},
+        #                 {'Data de Lançamento': {'$lte': datetime(2025, 1, 10)}}                        
+        #             ]
+        #         }
+        #     )))
+        #     df_budget_alvo['Acumulado'] = df_budget_alvo['Valor Programado'].cumsum()
+        #     st.dataframe(df_budget_alvo)
+        #     total_viagem = df_budget_alvo['Valor Programado'].sum() * -1
+        #     st.write(f'<h1 style="color:red">Gasto com viagems no período selecionado: R$ {utils.format_currency(total_viagem)}</h1>', unsafe_allow_html=True)
+        #     st.markdown(f'<h1 style="color:red;">Gasto com viagens no período selecionado: R$ {utils.format_currency(total_viagem)}</h1>', unsafe_allow_html=True)
+        #     st.write(f'## :red[Gasto com viagens no período selecionado: R$ {utils.format_currency(total_viagem)}]')
 
+        #%% Ver Despesas
+        # if st.button('Ver despesas'):
+        #     collection_budget = db['budget_test']
+        #     df_budget_alvo = pd.DataFrame(list(collection_budget.find(
+        #         {
+        #             'Categoria': {'$ne': 'Transferências'},  	
+        #             '$and': [
+        #                 {'Data de Lançamento': {'$gte': datetime(2025, 1, 1)}},
+        #                 {'Data de Lançamento': {'$lte': datetime(2025, 1, 31)}}                        
+        #             ]
+        #         }
+        #     )))
+        #     df_budget_alvo['Acumulado'] = df_budget_alvo['Valor Programado'].cumsum()
+        #     st.dataframe(df_budget_alvo)
+        #     total_viagem = df_budget_alvo['Valor Programado'].sum() * -1
+        #     st.markdown(f'<h1 style="color:red;">Gastos no período selecionado: R$ {utils.format_currency(total_viagem)}</h1>', unsafe_allow_html=True)
 
-    # else:
-    #     st.title('Nenhum recurso selecionado para os lançamentos')
+    #%% 
+    else:
+        st.title('Nenhum recurso selecionado para os lançamentos')
 
+    #%% Salários fim mês sem bonus
     # st.divider()
     # collection_budget_test = db['budget_test']
     # df_salarios_fim_mes_sem_bonus = pd.DataFrame(list(collection_budget_test.find({
@@ -215,7 +239,7 @@ def show_home(df):
     #             {'$set': {'Valor Programado': 4145.55}}
     #         )
 
-    # #%% PPRs
+    #%% PPRs
     # st.divider()
     # st.write('PPRs Fev')
     # collection_budget_test = db['budget_test']
@@ -249,6 +273,7 @@ def show_home(df):
     # dif_final = diferenca_salarios_fim_mes_sem_bonus - dif_ppr_fev
     # st.write(f'Diferença final {utils.format_currency(dif_final)}')
 
+    # %% Alterar PPRs
     # if st.button('Alterar PPRs'):
     #     for index, row in df_pprs_fev.iterrows():
     #         st.write(row)
@@ -258,7 +283,7 @@ def show_home(df):
     #             {'$set': {'Valor Programado': 1235.77}}
     #         )
 
-    # #%% Incluir adiantamentos PPRs
+    #%% Incluir adiantamentos PPRs
     # st.divider()
     # if st.button('Incluir adiantamentos PPRs'):
     #     collection_budget_test = db['budget_test']
